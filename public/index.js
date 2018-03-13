@@ -4,9 +4,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var nodeWidth = 15;
-var horizontalSpace = 50;
-var verticalSpace = 50;
+var scale = 1.0;
+var nodeWidth = 15 * scale;
+var horizontalSpace = 50 * scale;
+var verticalSpace = 50 * scale;
 
 var Tree = function () {
   function Tree(data, children) {
@@ -36,20 +37,32 @@ var Tree = function () {
 
 var tree = new Tree(5, [new Tree(6, [new Tree(10), new Tree(5), new Tree(1)]), new Tree(8, [new Tree(10), new Tree(1)]), new Tree(10, [new Tree(10), new Tree(15), new Tree(18, [new Tree(5)])])]);
 
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-var origin = [ctx.canvas.width / 2, 40];
+var container = document.getElementById('container');
+var canvas = document.createElement('canvas', {
+  width: window.innerWidth,
+  height: window.innerHeight,
+  style: 'width=100%; height=100%;'
+});
+container.appendChild(canvas);
 
-var drawNode = function drawNode(ctx, center) {
+var drawNode = function drawNode(ctx, center, text) {
   ctx.lineTo(center[0] - nodeWidth / 2, center[1]);
   ctx.stroke();
+
   ctx.beginPath();
   ctx.arc(center[0] - nodeWidth / 2, center[1], nodeWidth, 0, 2 * Math.PI);
   ctx.fill();
+
+  ctx.save();
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "white";
+  ctx.textAlign = "center";
+  ctx.fillText(text, center[0] - nodeWidth / 2, center[1] + nodeWidth / 2);
+  ctx.restore();
 };
 
 var drawTree = function drawTree(ctx, tree, center) {
-  drawNode(ctx, center);
+  drawNode(ctx, center, tree.data);
   ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
   var baseWidth = tree.width;
   var origin = center[0] - baseWidth / 2;
@@ -58,12 +71,20 @@ var drawTree = function drawTree(ctx, tree, center) {
       var childWidth = child.width;
       var childCenter = [origin + childWidth / 2, center[1] + verticalSpace];
       ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
-      drawTree(ctx, child, childCenter);
+      drawTree(ctx, child, childCenter, child.data);
       origin = childCenter[0] + childWidth / 2 + horizontalSpace;
     });
   }
 };
 
-drawTree(ctx, tree, origin);
-"use strict";
+var reload = function reload() {
+  var ctx = canvas.getContext('2d');
+  canvas.width = window.innerHeight * scale;
+  canvas.height = window.innerHeight * scale;
+  var origin = [ctx.canvas.width / 2, 40];
+  drawTree(ctx, tree, origin);
+};
+
+window.onresize = reload;
+window.onload = reload;
 //# sourceMappingURL=index.js.map
