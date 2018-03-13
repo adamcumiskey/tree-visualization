@@ -24,8 +24,9 @@ class Tree {
 
 const tree = new Tree(
   5,
-  [new Tree(6, [new Tree(10)]),
-  new Tree(8, [new Tree(10), new Tree(1)])]
+  [new Tree(6, [new Tree(10), new Tree(5), new Tree(1)]),
+  new Tree(8, [new Tree(10), new Tree(1)]),
+  new Tree(10, [new Tree(10), new Tree(15), new Tree(18, [new Tree(5)])])]
 )
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
@@ -50,7 +51,7 @@ const draw = function(ctx, tree, center) {
       ctx.lineTo(childCenter[0]-nodeWidth/2, childCenter[1])
       ctx.stroke()
       draw(ctx, child, childCenter)
-      origin = childCenter[0] + horizontalSpace
+      origin = childCenter[0] + childWidth/2 + horizontalSpace
     })
   }
 }
