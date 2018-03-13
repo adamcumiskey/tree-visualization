@@ -28,17 +28,20 @@ const tree = new Tree(
   new Tree(8, [new Tree(10), new Tree(1)]),
   new Tree(10, [new Tree(10), new Tree(15), new Tree(18, [new Tree(5)])])]
 )
+
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
 const origin = [ctx.canvas.width/2, 40]
 
 const drawNode = function(ctx, center) {
+  ctx.lineTo(center[0]-nodeWidth/2, center[1])
+  ctx.stroke()
   ctx.beginPath()
   ctx.arc(center[0]-nodeWidth/2, center[1], nodeWidth, 0, 2 * Math.PI)
   ctx.fill()
 }
 
-const draw = function(ctx, tree, center) {
+const drawTree = function(ctx, tree, center) {
   drawNode(ctx, center)
   ctx.moveTo(center[0]-nodeWidth/2, center[1])
   const baseWidth = tree.width
@@ -48,13 +51,11 @@ const draw = function(ctx, tree, center) {
       const childWidth = child.width
       const childCenter = [origin+(childWidth/2), center[1]+verticalSpace]
       ctx.moveTo(center[0]-nodeWidth/2, center[1])
-      ctx.lineTo(childCenter[0]-nodeWidth/2, childCenter[1])
-      ctx.stroke()
-      draw(ctx, child, childCenter)
+      drawTree(ctx, child, childCenter)
       origin = childCenter[0] + childWidth/2 + horizontalSpace
     })
   }
 }
 
-draw(ctx, tree, origin)
+drawTree(ctx, tree, origin)
 

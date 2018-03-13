@@ -35,17 +35,20 @@ var Tree = function () {
 }();
 
 var tree = new Tree(5, [new Tree(6, [new Tree(10), new Tree(5), new Tree(1)]), new Tree(8, [new Tree(10), new Tree(1)]), new Tree(10, [new Tree(10), new Tree(15), new Tree(18, [new Tree(5)])])]);
+
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 var origin = [ctx.canvas.width / 2, 40];
 
 var drawNode = function drawNode(ctx, center) {
+  ctx.lineTo(center[0] - nodeWidth / 2, center[1]);
+  ctx.stroke();
   ctx.beginPath();
   ctx.arc(center[0] - nodeWidth / 2, center[1], nodeWidth, 0, 2 * Math.PI);
   ctx.fill();
 };
 
-var draw = function draw(ctx, tree, center) {
+var drawTree = function drawTree(ctx, tree, center) {
   drawNode(ctx, center);
   ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
   var baseWidth = tree.width;
@@ -55,14 +58,12 @@ var draw = function draw(ctx, tree, center) {
       var childWidth = child.width;
       var childCenter = [origin + childWidth / 2, center[1] + verticalSpace];
       ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
-      ctx.lineTo(childCenter[0] - nodeWidth / 2, childCenter[1]);
-      ctx.stroke();
-      draw(ctx, child, childCenter);
+      drawTree(ctx, child, childCenter);
       origin = childCenter[0] + childWidth / 2 + horizontalSpace;
     });
   }
 };
 
-draw(ctx, tree, origin);
+drawTree(ctx, tree, origin);
 "use strict";
 //# sourceMappingURL=index.js.map
