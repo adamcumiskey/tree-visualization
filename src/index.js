@@ -36,6 +36,12 @@ class BinaryTree extends Tree {
     this.data = data
     this.left = left
     this.right = right
+
+    if (typeof data === 'number') {
+      this.meta = {}
+      var h = (data/100)*300
+      this.meta.color = `hsl(${h}, 100%, 50%)`
+    }
   }
 
   get children() {
@@ -84,26 +90,31 @@ const container = document.getElementById('container')
 const canvas = document.createElement('canvas')
 container.appendChild(canvas)
 
-const drawNode = function(ctx, center) {
+const drawLine = function(ctx, center, tree) {
   ctx.lineTo(center[0]-nodeWidth/2, center[1])
   ctx.stroke()
+}
 
+const drawNode = function(ctx, center, tree) {
+  ctx.save()
+  ctx.fillStyle = tree.meta.color || '#000000'
   ctx.beginPath()
   ctx.arc(center[0]-nodeWidth/2, center[1], nodeWidth, 0, 2 * Math.PI)
   ctx.fill()
+  ctx.restore()
 }
 
-const drawLabel = function(ctx, center, text) {
+const drawLabel = function(ctx, center, tree) {
   ctx.save()
   ctx.font = "20px Arial"
-  ctx.fillStyle = "white"
+  ctx.fillStyle = "black"
   ctx.textAlign = "center"
-  ctx.fillText(text, center[0]-nodeWidth/2, center[1]+nodeWidth/2)
+  ctx.fillText(tree.data, center[0]-nodeWidth/2, center[1]+nodeWidth/2)
   ctx.restore()
 }
 
 const drawTree = function(ctx, tree, center, fn) {
-  fn(ctx, center, tree.data)
+  fn(ctx, center, tree)
   ctx.moveTo(center[0]-nodeWidth/2, center[1])
   const baseWidth = tree.width
   var origin = center[0]-(baseWidth/2)
@@ -123,6 +134,7 @@ const reload = function() {
   canvas.width = window.innerHeight * scale
   canvas.height = window.innerHeight * scale
   const origin = [ctx.canvas.width/2, 20]
+  drawTree(ctx, tree, origin, drawLine)
   drawTree(ctx, tree, origin, drawNode)
   drawTree(ctx, tree, origin, drawLabel)
 }
