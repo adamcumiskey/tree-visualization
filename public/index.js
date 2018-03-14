@@ -67,6 +67,12 @@ var BinaryTree = function (_Tree) {
     _this.data = data;
     _this.left = left;
     _this.right = right;
+
+    if (typeof data === 'number') {
+      _this.meta = {};
+      var h = data / 100 * 300;
+      _this.meta.color = 'hsl(' + h + ', 100%, 50%)';
+    }
     return _this;
   }
 
@@ -126,26 +132,31 @@ var container = document.getElementById('container');
 var canvas = document.createElement('canvas');
 container.appendChild(canvas);
 
-var drawNode = function drawNode(ctx, center) {
+var drawLine = function drawLine(ctx, center, tree) {
   ctx.lineTo(center[0] - nodeWidth / 2, center[1]);
   ctx.stroke();
+};
 
+var drawNode = function drawNode(ctx, center, tree) {
+  ctx.save();
+  ctx.fillStyle = tree.meta.color || '#000000';
   ctx.beginPath();
   ctx.arc(center[0] - nodeWidth / 2, center[1], nodeWidth, 0, 2 * Math.PI);
   ctx.fill();
+  ctx.restore();
 };
 
-var drawLabel = function drawLabel(ctx, center, text) {
+var drawLabel = function drawLabel(ctx, center, tree) {
   ctx.save();
   ctx.font = "20px Arial";
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "black";
   ctx.textAlign = "center";
-  ctx.fillText(text, center[0] - nodeWidth / 2, center[1] + nodeWidth / 2);
+  ctx.fillText(tree.data, center[0] - nodeWidth / 2, center[1] + nodeWidth / 2);
   ctx.restore();
 };
 
 var drawTree = function drawTree(ctx, tree, center, fn) {
-  fn(ctx, center, tree.data);
+  fn(ctx, center, tree);
   ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
   var baseWidth = tree.width;
   var origin = center[0] - baseWidth / 2;
@@ -165,6 +176,7 @@ var reload = function reload() {
   canvas.width = window.innerHeight * scale;
   canvas.height = window.innerHeight * scale;
   var origin = [ctx.canvas.width / 2, 20];
+  drawTree(ctx, tree, origin, drawLine);
   drawTree(ctx, tree, origin, drawNode);
   drawTree(ctx, tree, origin, drawLabel);
 };
