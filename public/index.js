@@ -45,14 +45,16 @@ var canvas = document.createElement('canvas', {
 });
 container.appendChild(canvas);
 
-var drawNode = function drawNode(ctx, center, text) {
+var drawNode = function drawNode(ctx, center) {
   ctx.lineTo(center[0] - nodeWidth / 2, center[1]);
   ctx.stroke();
 
   ctx.beginPath();
   ctx.arc(center[0] - nodeWidth / 2, center[1], nodeWidth, 0, 2 * Math.PI);
   ctx.fill();
+};
 
+var drawLabel = function drawLabel(ctx, center, text) {
   ctx.save();
   ctx.font = "20px Arial";
   ctx.fillStyle = "white";
@@ -61,8 +63,8 @@ var drawNode = function drawNode(ctx, center, text) {
   ctx.restore();
 };
 
-var drawTree = function drawTree(ctx, tree, center) {
-  drawNode(ctx, center, tree.data);
+var drawTree = function drawTree(ctx, tree, center, fn) {
+  fn(ctx, center, tree.data);
   ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
   var baseWidth = tree.width;
   var origin = center[0] - baseWidth / 2;
@@ -71,7 +73,7 @@ var drawTree = function drawTree(ctx, tree, center) {
       var childWidth = child.width;
       var childCenter = [origin + childWidth / 2, center[1] + verticalSpace];
       ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
-      drawTree(ctx, child, childCenter, child.data);
+      drawTree(ctx, child, childCenter, fn);
       origin = childCenter[0] + childWidth / 2 + horizontalSpace;
     });
   }
@@ -82,7 +84,8 @@ var reload = function reload() {
   canvas.width = window.innerHeight * scale;
   canvas.height = window.innerHeight * scale;
   var origin = [ctx.canvas.width / 2, 40];
-  drawTree(ctx, tree, origin);
+  drawTree(ctx, tree, origin, drawNode);
+  drawTree(ctx, tree, origin, drawLabel);
 };
 
 window.onresize = reload;

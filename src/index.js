@@ -41,14 +41,16 @@ var canvas = document.createElement(
 )
 container.appendChild(canvas)
 
-const drawNode = function(ctx, center, text) {
+const drawNode = function(ctx, center) {
   ctx.lineTo(center[0]-nodeWidth/2, center[1])
   ctx.stroke()
 
   ctx.beginPath()
   ctx.arc(center[0]-nodeWidth/2, center[1], nodeWidth, 0, 2 * Math.PI)
   ctx.fill()
+}
 
+const drawLabel = function(ctx, center, text) {
   ctx.save()
   ctx.font = "20px Arial"
   ctx.fillStyle = "white"
@@ -57,8 +59,8 @@ const drawNode = function(ctx, center, text) {
   ctx.restore()
 }
 
-const drawTree = function(ctx, tree, center) {
-  drawNode(ctx, center, tree.data)
+const drawTree = function(ctx, tree, center, fn) {
+  fn(ctx, center, tree.data)
   ctx.moveTo(center[0]-nodeWidth/2, center[1])
   const baseWidth = tree.width
   var origin = center[0]-(baseWidth/2)
@@ -67,7 +69,7 @@ const drawTree = function(ctx, tree, center) {
       const childWidth = child.width
       const childCenter = [origin+(childWidth/2), center[1]+verticalSpace]
       ctx.moveTo(center[0]-nodeWidth/2, center[1])
-      drawTree(ctx, child, childCenter, child.data)
+      drawTree(ctx, child, childCenter, fn)
       origin = childCenter[0] + childWidth/2 + horizontalSpace
     })
   }
@@ -78,7 +80,8 @@ const reload = function() {
   canvas.width = window.innerHeight * scale
   canvas.height = window.innerHeight * scale
   const origin = [ctx.canvas.width/2, 40]
-  drawTree(ctx, tree, origin)
+  drawTree(ctx, tree, origin, drawNode)
+  drawTree(ctx, tree, origin, drawLabel)
 }
 
 window.onresize = reload
