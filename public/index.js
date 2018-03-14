@@ -72,6 +72,7 @@ var BinaryTree = function (_Tree) {
       _this.meta = {};
       var h = data / 100 * 300;
       _this.meta.color = 'hsl(' + h + ', 100%, 50%)';
+      _this.meta.textColor = 'white';
     }
     return _this;
   }
@@ -105,6 +106,7 @@ var BinaryTree = function (_Tree) {
           } else {
             this.right.insert(value);
           }
+          break;
       }
     }
   }, {
@@ -119,14 +121,119 @@ var BinaryTree = function (_Tree) {
   return BinaryTree;
 }(Tree);
 
+var red = 'red';
+var black = 'black';
+
+var RedBlackTree = function (_BinaryTree) {
+  _inherits(RedBlackTree, _BinaryTree);
+
+  function RedBlackTree(data, color, parent, left, right) {
+    _classCallCheck(this, RedBlackTree);
+
+    var _this2 = _possibleConstructorReturn(this, (RedBlackTree.__proto__ || Object.getPrototypeOf(RedBlackTree)).call(this, data, left, right));
+
+    _this2.color = color || black;
+    _this2.parent = parent;
+
+    _this2.meta = {
+      color: color,
+      textColor: 'white'
+    };
+    return _this2;
+  }
+
+  _createClass(RedBlackTree, [{
+    key: 'replaceSelfInParent',
+    value: function replaceSelfInParent(node) {
+      if (this.parent.right === this) {
+        this.parent.right = node;
+      } else {
+        this.parent.left = node;
+      }
+    }
+  }, {
+    key: 'setLeft',
+    value: function setLeft(node) {
+      node.parent = this;
+      this.left = node;
+    }
+  }, {
+    key: 'setRight',
+    value: function setRight(node) {
+      node.parent = this;
+      this.right = node;
+    }
+  }, {
+    key: 'rotateLeft',
+    value: function rotateLeft() {
+      var newNode = this.right;
+      if (newNode === undefined) {
+        throw new Error('Cannot set leaf as internal node');
+      }
+      this.setRight(newNode.left);
+      this.replaceSelfInParent(newNode);
+      this.parent = newNode;
+    }
+  }, {
+    key: 'rotateRight',
+    value: function rotateRight() {
+      var newNode = this.left;
+      if (newNode === undefined) {
+        throw new Error('Cannot set leaf as internal node');
+      }
+      this.setLeft(newNode.right);
+      this.replaceSelfInParent(newNode);
+      this.parent = newNode;
+    }
+  }, {
+    key: 'insert',
+    value: function insert(value) {
+      switch (compare(value, this.data)) {
+        case -1:
+          if (this.left !== undefined) {
+            this.left.insert(value);
+          } else {
+            this.left = new RedBlackTree(value, this.color === black ? red : black, this);
+          }
+          break;
+        case 1:
+          if (this.right !== undefined) {
+            this.right.insert(value);
+          } else {
+            this.right = new RedBlackTree(value, this.color === black ? red : black, this);
+          }
+          break;
+      }
+    }
+  }, {
+    key: 'grandparent',
+    get: function get() {
+      return this.parent.parent;
+    }
+  }, {
+    key: 'sibling',
+    get: function get() {
+      if (this.parent.right === this) {
+        return this.parent.left;
+      } else {
+        return this.parent.right;
+      }
+    }
+  }]);
+
+  return RedBlackTree;
+}(BinaryTree);
+
 var nodeCount = 30;
 var randomNumber = function randomNumber() {
   return Math.floor(Math.random() * 100);
 };
-var tree = new BinaryTree(randomNumber());
+var tree = new RedBlackTree(randomNumber());
 for (var i = 0; i < nodeCount; i++) {
   tree.insert(randomNumber());
 }
+
+console.log(tree);
 
 var container = document.getElementById('container');
 var canvas = document.createElement('canvas');
@@ -139,7 +246,9 @@ var drawLine = function drawLine(ctx, center, tree) {
 
 var drawNode = function drawNode(ctx, center, tree) {
   ctx.save();
-  ctx.fillStyle = tree.meta.color || '#000000';
+  if (tree.meta) {
+    ctx.fillStyle = tree.meta.color || '#000000';
+  }
   ctx.beginPath();
   ctx.arc(center[0] - nodeWidth / 2, center[1], nodeWidth, 0, 2 * Math.PI);
   ctx.fill();
@@ -149,7 +258,9 @@ var drawNode = function drawNode(ctx, center, tree) {
 var drawLabel = function drawLabel(ctx, center, tree) {
   ctx.save();
   ctx.font = "20px Arial";
-  ctx.fillStyle = "black";
+  if (tree.meta) {
+    ctx.fillStyle = tree.meta.textColor;
+  }
   ctx.textAlign = "center";
   ctx.fillText(tree.data, center[0] - nodeWidth / 2, center[1] + nodeWidth / 2);
   ctx.restore();

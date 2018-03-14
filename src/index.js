@@ -41,6 +41,7 @@ class BinaryTree extends Tree {
       this.meta = {}
       var h = (data/100)*300
       this.meta.color = `hsl(${h}, 100%, 50%)`
+      this.meta.textColor = 'white'
     }
   }
 
@@ -74,6 +75,101 @@ class BinaryTree extends Tree {
         } else {
           this.right.insert(value)
         }
+        break
+    }
+  }
+
+}
+
+const red = 'red'
+const black = 'black'
+
+class RedBlackTree extends BinaryTree {
+  constructor(data, color, parent, left, right) {
+    super(data, left, right)
+    this.color = color || black
+    this.parent = parent
+
+    this.meta = {
+      color: color,
+      textColor: 'white'
+    }
+  }
+
+  get grandparent() {
+    return this.parent.parent
+  }
+
+  get sibling() {
+    if (this.parent.right === this) {
+      return this.parent.left
+    } else {
+      return this.parent.right
+    }
+  }
+
+  replaceSelfInParent(node) {
+    if (this.parent.right === this) {
+      this.parent.right = node
+    } else {
+      this.parent.left = node
+    }
+  }
+
+  setLeft(node) {
+    node.parent = this
+    this.left = node
+  }
+
+  setRight(node) {
+    node.parent = this
+    this.right = node
+  }
+
+  rotateLeft() {
+    var newNode = this.right
+    if (newNode === undefined) {
+      throw new Error('Cannot set leaf as internal node')
+    }
+    this.setRight(newNode.left)
+    this.replaceSelfInParent(newNode)
+    this.parent = newNode
+  }
+
+  rotateRight() {
+    var newNode = this.left
+    if (newNode === undefined) {
+      throw new Error('Cannot set leaf as internal node')
+    }
+    this.setLeft(newNode.right)
+    this.replaceSelfInParent(newNode)
+    this.parent = newNode
+  }
+
+  insert(value) {
+    switch (compare(value, this.data)) {
+      case -1:
+        if (this.left !== undefined) {
+          this.left.insert(value)
+        } else {
+          this.left = new RedBlackTree(
+            value,
+            (this.color === black) ? red : black,
+            this
+          )
+        }
+        break
+      case 1:
+        if (this.right !== undefined) {
+          this.right.insert(value)
+        } else {
+          this.right = new RedBlackTree(
+            value,
+            (this.color === black) ? red : black,
+            this
+          )
+        }
+        break
     }
   }
 
@@ -81,10 +177,12 @@ class BinaryTree extends Tree {
 
 const nodeCount = 30
 const randomNumber = function() { return Math.floor(Math.random() * 100) }
-var tree = new BinaryTree(randomNumber())
+var tree = new RedBlackTree(randomNumber())
 for (var i = 0; i < nodeCount; i++) {
   tree.insert(randomNumber())
 }
+
+console.log(tree)
 
 const container = document.getElementById('container')
 const canvas = document.createElement('canvas')
@@ -97,7 +195,9 @@ const drawLine = function(ctx, center, tree) {
 
 const drawNode = function(ctx, center, tree) {
   ctx.save()
-  ctx.fillStyle = tree.meta.color || '#000000'
+  if (tree.meta) {
+    ctx.fillStyle = tree.meta.color || '#000000'
+  }
   ctx.beginPath()
   ctx.arc(center[0]-nodeWidth/2, center[1], nodeWidth, 0, 2 * Math.PI)
   ctx.fill()
@@ -107,7 +207,9 @@ const drawNode = function(ctx, center, tree) {
 const drawLabel = function(ctx, center, tree) {
   ctx.save()
   ctx.font = "20px Arial"
-  ctx.fillStyle = "black"
+  if (tree.meta) {
+    ctx.fillStyle = tree.meta.textColor
+  }
   ctx.textAlign = "center"
   ctx.fillText(tree.data, center[0]-nodeWidth/2, center[1]+nodeWidth/2)
   ctx.restore()
