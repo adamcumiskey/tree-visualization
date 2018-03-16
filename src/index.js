@@ -100,6 +100,14 @@ class RedBlackTree extends BinaryTree {
     return [this.left, this.right].filter(v => v !== undefined)
   }
 
+  get root() {
+    if (this.parent) {
+      return this.parent.root
+    } else {
+      return this
+    }
+  }
+
   get grandparent() {
     if (this.parent) {
       return this.parent.parent
@@ -120,22 +128,32 @@ class RedBlackTree extends BinaryTree {
     return this.parent.sibling
   }
 
-  replaceSelfInParent(node) {
-    if (this.parent.right && this.parent.right === this) {
-      this.parent.right = node
+  setLeft(node) {
+    if (node) {
+      node.parent = this
+      this.left = node
     } else {
-      this.parent.left = node
+      this.left = undefined
     }
   }
 
-  setLeft(node) {
-    node.parent = this
-    this.left = node
+  setRight(node) {
+    if (node) {
+      node.parent = this
+      this.right = node
+    } else {
+      this.right = undefined
+    }
   }
 
-  setRight(node) {
-    node.parent = this
-    this.right = node
+  replaceSelfInParent(node) {
+    if (!this.parent) {
+      node.parent = undefined
+    } else if (this.parent.right && this.parent.right === this) {
+      this.parent.setRight(node)
+    } else {
+      this.parent.setLeft(node)
+    }
   }
 
   setColor(color) {
@@ -148,11 +166,9 @@ class RedBlackTree extends BinaryTree {
     if (newNode === undefined) {
       throw new Error('Cannot set leaf as internal node')
     }
-    if (newNode.left) {
-      this.setRight(newNode.left)
-    }
+    this.setRight(newNode.left)
     this.replaceSelfInParent(newNode)
-    this.parent = newNode
+    newNode.setLeft(this)
   }
 
   rotateRight() {
@@ -160,29 +176,29 @@ class RedBlackTree extends BinaryTree {
     if (newNode === undefined) {
       throw new Error('Cannot set leaf as internal node')
     }
-    if (newNode.right) {
-      this.setLeft(newNode.right)
-    }
+    this.setLeft(newNode.right)
     this.replaceSelfInParent(newNode)
-    this.parent = newNode
+    newNode.setRight(this)
   }
 
   repair() {
     if (this.parent === undefined) {
       this.setColor(black)
+      return this.root
     } else if (this.parent.color === black) {
       // all good
+      return this.root
     } else if (this.uncle && this.uncle.color === red) {
       this.parent.setColor(black)
       this.uncle.setColor(black)
       this.grandparent.setColor(red)
-      this.grandparent.repair()
+      return this.grandparent.repair()
     } else {
       var p = this.parent
       var g = this.grandparent
       if (g) {
         if (g.left && this === g.left.right) {
-          g.setLeft(this)
+          p.rotateLeft()
         } else if (g.right && this === g.right.left) {
           p.rotateRight()
         }
@@ -191,9 +207,10 @@ class RedBlackTree extends BinaryTree {
         } else {
           g.rotateLeft()
         }
-        p.setColor(black)
+        this.setColor(black)
         g.setColor(red)
       }
+      return this.root
     }
   }
 
@@ -202,24 +219,20 @@ class RedBlackTree extends BinaryTree {
     switch (compare(value, this.data)) {
       case -1:
         if (this.left !== undefined) {
-          this.left.insert(value)
+          return this.left.insert(value)
         } else {
-          inserted = new RedBlackTree(value, red, this)
-          this.left = inserted
+          this.left = new RedBlackTree(value, red, this)
+          return this.left.repair()
         }
-        break
+      case 0:
+        return this.root
       case 1:
         if (this.right !== undefined) {
-          this.right.insert(value)
+          return this.right.insert(value)
         } else {
-          inserted = new RedBlackTree(value, red, this)
-          this.right = inserted
+          this.right = new RedBlackTree(value, red, this)
+          return this.right.repair()
         }
-        break
-    }
-
-    if (inserted) {
-      inserted.repair()
     }
   }
 
@@ -272,7 +285,7 @@ const drawTree = function(ctx, tree, center, fn) {
 }
 
 const nodeCount = 30
-const delay = 20
+const delay = 1000
 const randomNumber = function() { return Math.floor(Math.random() * 100) }
 const container = document.getElementById('container')
 const canvas = document.createElement('canvas')
@@ -287,7 +300,7 @@ const draw = function() {
 }
 
 var drawnNodes = 0
-var tree = new BinaryTree(randomNumber())
+var tree = new RedBlackTree(randomNumber())
 
 const reload = function() {
   canvas.width = innerHeight * scale
@@ -295,8 +308,8 @@ const reload = function() {
   draw()
 
   if (drawnNodes < nodeCount) {
+    tree = tree.insert(randomNumber())
     drawnNodes++
-    tree.insert(randomNumber())
     setTimeout(reload, delay)
   }
 }

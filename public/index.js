@@ -143,25 +143,35 @@ var RedBlackTree = function (_BinaryTree) {
   }
 
   _createClass(RedBlackTree, [{
-    key: 'replaceSelfInParent',
-    value: function replaceSelfInParent(node) {
-      if (this.parent.right && this.parent.right === this) {
-        this.parent.right = node;
-      } else {
-        this.parent.left = node;
-      }
-    }
-  }, {
     key: 'setLeft',
     value: function setLeft(node) {
-      node.parent = this;
-      this.left = node;
+      if (node) {
+        node.parent = this;
+        this.left = node;
+      } else {
+        this.left = undefined;
+      }
     }
   }, {
     key: 'setRight',
     value: function setRight(node) {
-      node.parent = this;
-      this.right = node;
+      if (node) {
+        node.parent = this;
+        this.right = node;
+      } else {
+        this.right = undefined;
+      }
+    }
+  }, {
+    key: 'replaceSelfInParent',
+    value: function replaceSelfInParent(node) {
+      if (!this.parent) {
+        node.parent = undefined;
+      } else if (this.parent.right && this.parent.right === this) {
+        this.parent.setRight(node);
+      } else {
+        this.parent.setLeft(node);
+      }
     }
   }, {
     key: 'setColor',
@@ -176,11 +186,9 @@ var RedBlackTree = function (_BinaryTree) {
       if (newNode === undefined) {
         throw new Error('Cannot set leaf as internal node');
       }
-      if (newNode.left) {
-        this.setRight(newNode.left);
-      }
+      this.setRight(newNode.left);
       this.replaceSelfInParent(newNode);
-      this.parent = newNode;
+      newNode.setLeft(this);
     }
   }, {
     key: 'rotateRight',
@@ -189,30 +197,30 @@ var RedBlackTree = function (_BinaryTree) {
       if (newNode === undefined) {
         throw new Error('Cannot set leaf as internal node');
       }
-      if (newNode.right) {
-        this.setLeft(newNode.right);
-      }
+      this.setLeft(newNode.right);
       this.replaceSelfInParent(newNode);
-      this.parent = newNode;
+      newNode.setRight(this);
     }
   }, {
     key: 'repair',
     value: function repair() {
       if (this.parent === undefined) {
         this.setColor(black);
+        return this.root;
       } else if (this.parent.color === black) {
         // all good
+        return this.root;
       } else if (this.uncle && this.uncle.color === red) {
         this.parent.setColor(black);
         this.uncle.setColor(black);
         this.grandparent.setColor(red);
-        this.grandparent.repair();
+        return this.grandparent.repair();
       } else {
         var p = this.parent;
         var g = this.grandparent;
         if (g) {
           if (g.left && this === g.left.right) {
-            g.setLeft(this);
+            p.rotateLeft();
           } else if (g.right && this === g.right.left) {
             p.rotateRight();
           }
@@ -221,9 +229,10 @@ var RedBlackTree = function (_BinaryTree) {
           } else {
             g.rotateLeft();
           }
-          p.setColor(black);
+          this.setColor(black);
           g.setColor(red);
         }
+        return this.root;
       }
     }
   }, {
@@ -233,24 +242,20 @@ var RedBlackTree = function (_BinaryTree) {
       switch (compare(value, this.data)) {
         case -1:
           if (this.left !== undefined) {
-            this.left.insert(value);
+            return this.left.insert(value);
           } else {
-            inserted = new RedBlackTree(value, red, this);
-            this.left = inserted;
+            this.left = new RedBlackTree(value, red, this);
+            return this.left.repair();
           }
-          break;
+        case 0:
+          return this.root;
         case 1:
           if (this.right !== undefined) {
-            this.right.insert(value);
+            return this.right.insert(value);
           } else {
-            inserted = new RedBlackTree(value, red, this);
-            this.right = inserted;
+            this.right = new RedBlackTree(value, red, this);
+            return this.right.repair();
           }
-          break;
-      }
-
-      if (inserted) {
-        inserted.repair();
       }
     }
   }, {
@@ -259,6 +264,15 @@ var RedBlackTree = function (_BinaryTree) {
       return [this.left, this.right].filter(function (v) {
         return v !== undefined;
       });
+    }
+  }, {
+    key: 'root',
+    get: function get() {
+      if (this.parent) {
+        return this.parent.root;
+      } else {
+        return this;
+      }
     }
   }, {
     key: 'grandparent',
@@ -334,7 +348,7 @@ var drawTree = function drawTree(ctx, tree, center, fn) {
 };
 
 var nodeCount = 30;
-var delay = 20;
+var delay = 1000;
 var randomNumber = function randomNumber() {
   return Math.floor(Math.random() * 100);
 };
@@ -351,7 +365,7 @@ var draw = function draw() {
 };
 
 var drawnNodes = 0;
-var tree = new BinaryTree(randomNumber());
+var tree = new RedBlackTree(randomNumber());
 
 var reload = function reload() {
   canvas.width = innerHeight * scale;
@@ -359,8 +373,8 @@ var reload = function reload() {
   draw();
 
   if (drawnNodes < nodeCount) {
+    tree = tree.insert(randomNumber());
     drawnNodes++;
-    tree.insert(randomNumber());
     setTimeout(reload, delay);
   }
 };
