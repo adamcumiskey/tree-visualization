@@ -247,7 +247,6 @@ class RedBlackTree extends BinaryTree {
 
 }
 
-
 const drawLine = function(ctx, center, tree) {
   ctx.lineTo(center[0]-nodeWidth/2, center[1])
   ctx.stroke()
@@ -297,7 +296,7 @@ const drawTree = function(ctx, tree, center, fn) {
 const nodeCount = 30
 const delay = 50
 const randomNumber = function() { return Math.floor(Math.random() * 100) }
-const tree = new BinaryTree()
+var tree = new BinaryTree()
 
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
@@ -305,6 +304,7 @@ const ctx = canvas.getContext('2d')
 const insertInput = document.getElementById('insert-input')
 const insertSubmit = document.getElementById('insert-submit')
 const insertRandom = document.getElementById('insert-random')
+const nukeSubmit = document.getElementById('nuke-submit')
 
 const insert = function(event) {
   const value = parseInt(insertInput.value)
@@ -319,8 +319,14 @@ const insertRnd = function(event) {
   reload()
 }
 
+const nuke = function(event) {
+  tree = new BinaryTree()
+  reload()
+}
+
 insertSubmit.onclick = insert
 insertRandom.onclick = insertRnd
+nukeSubmit.onclick = nuke
 
 const draw = function() {
   const origin = [ctx.canvas.width/2, 20]

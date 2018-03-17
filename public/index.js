@@ -371,6 +371,7 @@ var ctx = canvas.getContext('2d');
 var insertInput = document.getElementById('insert-input');
 var insertSubmit = document.getElementById('insert-submit');
 var insertRandom = document.getElementById('insert-random');
+var nukeSubmit = document.getElementById('nuke-submit');
 
 var insert = function insert(event) {
   var value = parseInt(insertInput.value);
@@ -385,8 +386,14 @@ var insertRnd = function insertRnd(event) {
   reload();
 };
 
+var nuke = function nuke(event) {
+  tree = new BinaryTree();
+  reload();
+};
+
 insertSubmit.onclick = insert;
 insertRandom.onclick = insertRnd;
+nukeSubmit.onclick = nuke;
 
 var draw = function draw() {
   var origin = [ctx.canvas.width / 2, 20];
