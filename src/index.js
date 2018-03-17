@@ -33,10 +33,13 @@ class Tree {
 class BinaryTree extends Tree {
   constructor(data, left, right) {
     super()
-    this.data = data
     this.left = left
     this.right = right
+    this.setData(data)
+  }
 
+  setData(data) {
+    this.data = data
     if (typeof data === 'number') {
       this.meta = {}
       var h = (data/100)*300
@@ -61,13 +64,19 @@ class BinaryTree extends Tree {
   }
 
   insert(value) {
+    if (!this.data) {
+      this.setData(value)
+      return
+    }
     switch (compare(value, this.data)) {
       case -1:
         if (this.left === undefined) {
           this.left = new BinaryTree(value)
         } else {
-          this.left.insert(value)
+          return this.left.insert(value)
         }
+        break
+      case 0:
         break
       case 1:
         if (this.right === undefined) {
@@ -269,6 +278,7 @@ const drawLabel = function(ctx, center, tree) {
 }
 
 const drawTree = function(ctx, tree, center, fn) {
+  if (!tree.data) return
   fn(ctx, center, tree)
   ctx.moveTo(center[0]-nodeWidth/2, center[1])
   const baseWidth = tree.width
@@ -285,12 +295,32 @@ const drawTree = function(ctx, tree, center, fn) {
 }
 
 const nodeCount = 30
-const delay = 1000
+const delay = 50
 const randomNumber = function() { return Math.floor(Math.random() * 100) }
-const container = document.getElementById('container')
-const canvas = document.createElement('canvas')
+const tree = new BinaryTree()
+
+const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
-container.appendChild(canvas)
+
+const insertInput = document.getElementById('insert-input')
+const insertSubmit = document.getElementById('insert-submit')
+const insertRandom = document.getElementById('insert-random')
+
+const insert = function(event) {
+  const value = parseInt(insertInput.value)
+  if (value) {
+    tree.insert(value)
+    reload()
+  }
+}
+
+const insertRnd = function(event) {
+  tree.insert(randomNumber())
+  reload()
+}
+
+insertSubmit.onclick = insert
+insertRandom.onclick = insertRnd
 
 const draw = function() {
   const origin = [ctx.canvas.width/2, 20]
@@ -300,18 +330,11 @@ const draw = function() {
 }
 
 var drawnNodes = 0
-var tree = new RedBlackTree(randomNumber())
 
 const reload = function() {
   canvas.width = innerHeight * scale
   canvas.height = innerHeight * scale
   draw()
-
-  if (drawnNodes < nodeCount) {
-    tree = tree.insert(randomNumber())
-    drawnNodes++
-    setTimeout(reload, delay)
-  }
 }
 
 window.onresize = reload

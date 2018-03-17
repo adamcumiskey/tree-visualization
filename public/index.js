@@ -64,20 +64,24 @@ var BinaryTree = function (_Tree) {
 
     var _this = _possibleConstructorReturn(this, (BinaryTree.__proto__ || Object.getPrototypeOf(BinaryTree)).call(this));
 
-    _this.data = data;
     _this.left = left;
     _this.right = right;
-
-    if (typeof data === 'number') {
-      _this.meta = {};
-      var h = data / 100 * 300;
-      _this.meta.color = 'hsl(' + h + ', 100%, 50%)';
-      _this.meta.textColor = 'white';
-    }
+    _this.setData(data);
     return _this;
   }
 
   _createClass(BinaryTree, [{
+    key: 'setData',
+    value: function setData(data) {
+      this.data = data;
+      if (typeof data === 'number') {
+        this.meta = {};
+        var h = data / 100 * 300;
+        this.meta.color = 'hsl(' + h + ', 100%, 50%)';
+        this.meta.textColor = 'white';
+      }
+    }
+  }, {
     key: 'find',
     value: function find(value) {
       switch (compare(value, this.data)) {
@@ -92,13 +96,19 @@ var BinaryTree = function (_Tree) {
   }, {
     key: 'insert',
     value: function insert(value) {
+      if (!this.data) {
+        this.setData(value);
+        return;
+      }
       switch (compare(value, this.data)) {
         case -1:
           if (this.left === undefined) {
             this.left = new BinaryTree(value);
           } else {
-            this.left.insert(value);
+            return this.left.insert(value);
           }
+          break;
+        case 0:
           break;
         case 1:
           if (this.right === undefined) {
@@ -332,6 +342,7 @@ var drawLabel = function drawLabel(ctx, center, tree) {
 };
 
 var drawTree = function drawTree(ctx, tree, center, fn) {
+  if (!tree.data) return;
   fn(ctx, center, tree);
   ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
   var baseWidth = tree.width;
@@ -348,14 +359,34 @@ var drawTree = function drawTree(ctx, tree, center, fn) {
 };
 
 var nodeCount = 30;
-var delay = 1000;
+var delay = 50;
 var randomNumber = function randomNumber() {
   return Math.floor(Math.random() * 100);
 };
-var container = document.getElementById('container');
-var canvas = document.createElement('canvas');
+var tree = new BinaryTree();
+
+var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-container.appendChild(canvas);
+
+var insertInput = document.getElementById('insert-input');
+var insertSubmit = document.getElementById('insert-submit');
+var insertRandom = document.getElementById('insert-random');
+
+var insert = function insert(event) {
+  var value = parseInt(insertInput.value);
+  if (value) {
+    tree.insert(value);
+    reload();
+  }
+};
+
+var insertRnd = function insertRnd(event) {
+  tree.insert(randomNumber());
+  reload();
+};
+
+insertSubmit.onclick = insert;
+insertRandom.onclick = insertRnd;
 
 var draw = function draw() {
   var origin = [ctx.canvas.width / 2, 20];
@@ -365,18 +396,11 @@ var draw = function draw() {
 };
 
 var drawnNodes = 0;
-var tree = new RedBlackTree(randomNumber());
 
 var reload = function reload() {
   canvas.width = innerHeight * scale;
   canvas.height = innerHeight * scale;
   draw();
-
-  if (drawnNodes < nodeCount) {
-    tree = tree.insert(randomNumber());
-    drawnNodes++;
-    setTimeout(reload, delay);
-  }
 };
 
 window.onresize = reload;
