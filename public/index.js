@@ -337,6 +337,11 @@ var RedBlackTree = function (_BinaryTree) {
       }
     }
   }, {
+    key: 'remove',
+    value: function remove(value) {
+      // no-op
+    }
+  }, {
     key: 'meta',
     get: function get() {
       return {

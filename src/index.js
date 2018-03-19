@@ -217,8 +217,6 @@ class RedBlackTree extends BinaryTree {
     }
   }
 
-  
-
   repair() {
     if (this.parent === undefined) {
       this.color = black
@@ -281,6 +279,10 @@ class RedBlackTree extends BinaryTree {
           return this.right.repair()
         }
     }
+  }
+
+  remove(value) {
+    // no-op
   }
 
 }
