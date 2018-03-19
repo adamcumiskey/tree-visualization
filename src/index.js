@@ -224,7 +224,10 @@ class RedBlackTree extends BinaryTree {
   }
 
   insert(value) {
-    var inserted;
+    if (!self.data) {
+      self.data = value
+      return
+    }
     switch (compare(value, this.data)) {
       case -1:
         if (this.left !== undefined) {
@@ -233,6 +236,7 @@ class RedBlackTree extends BinaryTree {
           this.left = new RedBlackTree(value, red, this)
           return this.left.repair()
         }
+        /* jshint -W086 */
       case 0:
         return this.root
       case 1:
@@ -296,15 +300,15 @@ const drawTree = function(ctx, tree, center, fn) {
 const nodeCount = 30
 const delay = 50
 const randomNumber = function() { return Math.floor(Math.random() * 100) }
-var tree = new BinaryTree()
 
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
-
 const insertInput = document.getElementById('insert-input')
 const insertSubmit = document.getElementById('insert-submit')
 const insertRandom = document.getElementById('insert-random')
 const nukeSubmit = document.getElementById('nuke-submit')
+
+var tree = new RedBlackTree(5)
 
 const insert = function(event) {
   const value = parseInt(insertInput.value)
@@ -315,7 +319,7 @@ const insert = function(event) {
 }
 
 const insertRnd = function(event) {
-  tree.insert(randomNumber())
+  tree = tree.insert(randomNumber())
   reload()
 }
 
@@ -334,8 +338,6 @@ const draw = function() {
   drawTree(ctx, tree, origin, drawNode)
   drawTree(ctx, tree, origin, drawLabel)
 }
-
-var drawnNodes = 0
 
 const reload = function() {
   canvas.width = innerHeight * scale
