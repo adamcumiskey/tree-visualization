@@ -25,6 +25,7 @@ class Tree {
     }
   }
 
+
 }
 
 class BinaryTree extends Tree {
@@ -58,74 +59,6 @@ class BinaryTree extends Tree {
     return [this.left, this.right].filter(v => v !== undefined)
   }
 
-  find(value) {
-    switch (compare(value, this.data)) {
-      case -1:
-        return this.left.find(value)
-      case 0:
-        return this
-      case 1:
-        return this.right.find(value)
-    }
-  }
-
-  insert(value) {
-    if (this.data === undefined) {
-      this.data = value
-      return this
-    }
-    switch (compare(value, this.data)) {
-      case -1:
-        if (this.left === undefined) {
-          this.left = new BinaryTree(value, this)
-          return this.root
-        } else {
-          return this.left.insert(value)
-        }
-        /* jshint -W086 */
-      case 0:
-        return this.root
-      case 1:
-        if (this.right === undefined) {
-          this.right = new BinaryTree(value, this)
-          return this.root
-        } else {
-          return this.right.insert(value)
-        }
-    }
-  }
-
-}
-
-const red = 'red'
-const black = 'black'
-
-class RedBlackTree extends BinaryTree {
-  constructor(data, color, parent, left, right) {
-    super(data, left, right)
-    this.color = color || black
-    this.parent = parent
-  }
-
-  get meta() {
-    return {
-      color: this.color,
-      textColor: 'white'
-    }
-  }
-
-  get children() {
-    return [this.left, this.right].filter(v => v !== undefined)
-  }
-
-  get root() {
-    if (this.parent) {
-      return this.parent.root
-    } else {
-      return this
-    }
-  }
-
   get grandparent() {
     if (this.parent) {
       return this.parent.parent
@@ -144,6 +77,22 @@ class RedBlackTree extends BinaryTree {
 
   get uncle() {
     return this.parent.sibling
+  }
+
+  get min() {
+    if (this.left === undefined) {
+      return this
+    } else {
+      return this.left.min
+    }
+  }
+
+  get max() {
+    if (this.right === undefined) {
+      return this
+    } else {
+      return this.right.max
+    }
   }
 
   setLeft(node) {
@@ -193,6 +142,82 @@ class RedBlackTree extends BinaryTree {
     this.replaceSelfInParent(newNode)
     newNode.setRight(this)
   }
+
+  find(value) {
+    switch (compare(value, this.data)) {
+      case -1:
+        return this.left.find(value)
+      case 0:
+        return this
+      case 1:
+        return this.right.find(value)
+    }
+  }
+
+  insert(value) {
+    if (this.data === undefined) {
+      this.data = value
+      return this
+    }
+    switch (compare(value, this.data)) {
+      case -1:
+        if (this.left === undefined) {
+          this.left = new BinaryTree(value, this)
+          return this.root
+        } else {
+          return this.left.insert(value)
+        }
+        /* jshint -W086 */
+      case 0:
+        return this.root
+      case 1:
+        if (this.right === undefined) {
+          this.right = new BinaryTree(value, this)
+          return this.root
+        } else {
+          return this.right.insert(value)
+        }
+    }
+  }
+
+  remove(value) {
+    const node = this.find(value)
+    if (node !== undefined) {
+      var nextNode
+      if (node.left && node.right) {
+        nextNode = node.right.min
+        nextNode.replaceSelfInParent(nextNode.right || undefined)
+        node.data = nextNode.data
+      } else if (!node.left || !node.right) {
+        node.replaceSelfInParent(node.children[0])
+      } else {
+        node.replaceSelfInParent(undefined)
+      }
+      return this.root
+    }
+    return this.root
+  }
+
+}
+
+const red = 'red'
+const black = 'black'
+
+class RedBlackTree extends BinaryTree {
+  constructor(data, color, parent, left, right) {
+    super(data, left, right)
+    this.color = color || black
+    this.parent = parent
+  }
+
+  get meta() {
+    return {
+      color: this.color,
+      textColor: 'white'
+    }
+  }
+
+  
 
   repair() {
     if (this.parent === undefined) {
@@ -324,6 +349,8 @@ const valueList = document.getElementById('value-list')
 const insertInput = document.getElementById('insert-input')
 const insertSubmit = document.getElementById('insert-submit')
 const insertRandom = document.getElementById('insert-random')
+const removeInput = document.getElementById('remove-input')
+const removeSubmit = document.getElementById('remove-submit')
 const nukeSubmit = document.getElementById('nuke-submit')
 
 const ctx = canvas.getContext('2d')
@@ -374,7 +401,7 @@ const insert = function(event) {
   const intValue = parseInt(value)
   if (value !== undefined && !isNaN(intValue)) {
     inserted.push(intValue)
-    tree = tree.insert(value)
+    tree = tree.insert(intValue)
     redraw()
   }
 }
@@ -386,6 +413,16 @@ const insertRnd = function(event) {
   redraw()
 }
 
+const remove = function() {
+  const value = removeInput.value
+  const intValue = parseInt(value)
+  if (value !== undefined && !isNaN(intValue)) {
+    inserted.filter(e => e !== intValue)
+    tree = tree.remove(intValue)
+    redraw()
+  }
+}
+
 const nuke = function(event) {
   init(treeTypes[treeSelect.value])
 }
@@ -395,6 +432,7 @@ init(BinaryTree)
 treeSelect.onchange = setType
 insertSubmit.onclick = insert
 insertRandom.onclick = insertRnd
+removeSubmit.onclick = remove
 nukeSubmit.onclick = nuke
 window.onresize = resize
 window.onload = resize

@@ -71,93 +71,6 @@ var BinaryTree = function (_Tree) {
   }
 
   _createClass(BinaryTree, [{
-    key: 'find',
-    value: function find(value) {
-      switch (compare(value, this.data)) {
-        case -1:
-          return this.left.find(value);
-        case 0:
-          return this;
-        case 1:
-          return this.right.find(value);
-      }
-    }
-  }, {
-    key: 'insert',
-    value: function insert(value) {
-      if (this.data === undefined) {
-        this.data = value;
-        return this;
-      }
-      switch (compare(value, this.data)) {
-        case -1:
-          if (this.left === undefined) {
-            this.left = new BinaryTree(value, this);
-            return this.root;
-          } else {
-            return this.left.insert(value);
-          }
-        /* jshint -W086 */
-        case 0:
-          return this.root;
-        case 1:
-          if (this.right === undefined) {
-            this.right = new BinaryTree(value, this);
-            return this.root;
-          } else {
-            return this.right.insert(value);
-          }
-      }
-    }
-  }, {
-    key: 'meta',
-    get: function get() {
-      if (this.data !== undefined) {
-        var h = this.data / 100 * 300;
-        return {
-          color: 'hsl(' + h + ', 100%, 50%)',
-          textColor: 'white'
-        };
-      }
-    }
-  }, {
-    key: 'root',
-    get: function get() {
-      if (this.parent === undefined) {
-        return this;
-      } else {
-        return this.parent.root;
-      }
-    }
-  }, {
-    key: 'children',
-    get: function get() {
-      return [this.left, this.right].filter(function (v) {
-        return v !== undefined;
-      });
-    }
-  }]);
-
-  return BinaryTree;
-}(Tree);
-
-var red = 'red';
-var black = 'black';
-
-var RedBlackTree = function (_BinaryTree) {
-  _inherits(RedBlackTree, _BinaryTree);
-
-  function RedBlackTree(data, color, parent, left, right) {
-    _classCallCheck(this, RedBlackTree);
-
-    var _this2 = _possibleConstructorReturn(this, (RedBlackTree.__proto__ || Object.getPrototypeOf(RedBlackTree)).call(this, data, left, right));
-
-    _this2.color = color || black;
-    _this2.parent = parent;
-    return _this2;
-  }
-
-  _createClass(RedBlackTree, [{
     key: 'setLeft',
     value: function setLeft(node) {
       if (node) {
@@ -211,6 +124,153 @@ var RedBlackTree = function (_BinaryTree) {
       newNode.setRight(this);
     }
   }, {
+    key: 'find',
+    value: function find(value) {
+      switch (compare(value, this.data)) {
+        case -1:
+          return this.left.find(value);
+        case 0:
+          return this;
+        case 1:
+          return this.right.find(value);
+      }
+    }
+  }, {
+    key: 'insert',
+    value: function insert(value) {
+      if (this.data === undefined) {
+        this.data = value;
+        return this;
+      }
+      switch (compare(value, this.data)) {
+        case -1:
+          if (this.left === undefined) {
+            this.left = new BinaryTree(value, this);
+            return this.root;
+          } else {
+            return this.left.insert(value);
+          }
+        /* jshint -W086 */
+        case 0:
+          return this.root;
+        case 1:
+          if (this.right === undefined) {
+            this.right = new BinaryTree(value, this);
+            return this.root;
+          } else {
+            return this.right.insert(value);
+          }
+      }
+    }
+  }, {
+    key: 'remove',
+    value: function remove(value) {
+      var node = this.find(value);
+      if (node !== undefined) {
+        var nextNode;
+        if (node.left && node.right) {
+          nextNode = node.right.min;
+          nextNode.replaceSelfInParent(nextNode.right || undefined);
+          node.data = nextNode.data;
+        } else if (!node.left || !node.right) {
+          node.replaceSelfInParent(node.children[0]);
+        } else {
+          node.replaceSelfInParent(undefined);
+        }
+        return this.root;
+      }
+      return this.root;
+    }
+  }, {
+    key: 'meta',
+    get: function get() {
+      if (this.data !== undefined) {
+        var h = this.data / 100 * 300;
+        return {
+          color: 'hsl(' + h + ', 100%, 50%)',
+          textColor: 'white'
+        };
+      }
+    }
+  }, {
+    key: 'root',
+    get: function get() {
+      if (this.parent === undefined) {
+        return this;
+      } else {
+        return this.parent.root;
+      }
+    }
+  }, {
+    key: 'children',
+    get: function get() {
+      return [this.left, this.right].filter(function (v) {
+        return v !== undefined;
+      });
+    }
+  }, {
+    key: 'grandparent',
+    get: function get() {
+      if (this.parent) {
+        return this.parent.parent;
+      } else {
+        return undefined;
+      }
+    }
+  }, {
+    key: 'sibling',
+    get: function get() {
+      if (this.parent.right === this) {
+        return this.parent.left;
+      } else {
+        return this.parent.right;
+      }
+    }
+  }, {
+    key: 'uncle',
+    get: function get() {
+      return this.parent.sibling;
+    }
+  }, {
+    key: 'min',
+    get: function get() {
+      if (this.left === undefined) {
+        return this;
+      } else {
+        return this.left.min;
+      }
+    }
+  }, {
+    key: 'max',
+    get: function get() {
+      if (this.right === undefined) {
+        return this;
+      } else {
+        return this.right.max;
+      }
+    }
+  }]);
+
+  return BinaryTree;
+}(Tree);
+
+var red = 'red';
+var black = 'black';
+
+var RedBlackTree = function (_BinaryTree) {
+  _inherits(RedBlackTree, _BinaryTree);
+
+  function RedBlackTree(data, color, parent, left, right) {
+    _classCallCheck(this, RedBlackTree);
+
+    var _this2 = _possibleConstructorReturn(this, (RedBlackTree.__proto__ || Object.getPrototypeOf(RedBlackTree)).call(this, data, left, right));
+
+    _this2.color = color || black;
+    _this2.parent = parent;
+    return _this2;
+  }
+
+  _createClass(RedBlackTree, [{
     key: 'repair',
     value: function repair() {
       if (this.parent === undefined) {
@@ -284,45 +344,6 @@ var RedBlackTree = function (_BinaryTree) {
         textColor: 'white'
       };
     }
-  }, {
-    key: 'children',
-    get: function get() {
-      return [this.left, this.right].filter(function (v) {
-        return v !== undefined;
-      });
-    }
-  }, {
-    key: 'root',
-    get: function get() {
-      if (this.parent) {
-        return this.parent.root;
-      } else {
-        return this;
-      }
-    }
-  }, {
-    key: 'grandparent',
-    get: function get() {
-      if (this.parent) {
-        return this.parent.parent;
-      } else {
-        return undefined;
-      }
-    }
-  }, {
-    key: 'sibling',
-    get: function get() {
-      if (this.parent.right === this) {
-        return this.parent.left;
-      } else {
-        return this.parent.right;
-      }
-    }
-  }, {
-    key: 'uncle',
-    get: function get() {
-      return this.parent.sibling;
-    }
   }]);
 
   return RedBlackTree;
@@ -392,6 +413,8 @@ var valueList = document.getElementById('value-list');
 var insertInput = document.getElementById('insert-input');
 var insertSubmit = document.getElementById('insert-submit');
 var insertRandom = document.getElementById('insert-random');
+var removeInput = document.getElementById('remove-input');
+var removeSubmit = document.getElementById('remove-submit');
 var nukeSubmit = document.getElementById('nuke-submit');
 
 var ctx = canvas.getContext('2d');
@@ -442,7 +465,7 @@ var insert = function insert(event) {
   var intValue = parseInt(value);
   if (value !== undefined && !isNaN(intValue)) {
     inserted.push(intValue);
-    tree = tree.insert(value);
+    tree = tree.insert(intValue);
     redraw();
   }
 };
@@ -454,6 +477,18 @@ var insertRnd = function insertRnd(event) {
   redraw();
 };
 
+var remove = function remove() {
+  var value = removeInput.value;
+  var intValue = parseInt(value);
+  if (value !== undefined && !isNaN(intValue)) {
+    inserted.filter(function (e) {
+      return e !== intValue;
+    });
+    tree = tree.remove(intValue);
+    redraw();
+  }
+};
+
 var nuke = function nuke(event) {
   init(treeTypes[treeSelect.value]);
 };
@@ -463,6 +498,7 @@ init(BinaryTree);
 treeSelect.onchange = setType;
 insertSubmit.onclick = insert;
 insertRandom.onclick = insertRnd;
+removeSubmit.onclick = remove;
 nukeSubmit.onclick = nuke;
 window.onresize = resize;
 window.onload = resize;
