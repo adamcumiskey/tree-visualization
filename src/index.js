@@ -1,7 +1,4 @@
-const scale = 1.0
-const nodeWidth = 15 * scale
-const horizontalSpace = 50 * scale
-const verticalSpace = 50 * scale
+const randomNumber = function() { return Math.floor(Math.random() * 100) }
 
 const compare = function(a, b) {
   if (typeof a === 'number' && typeof b === 'number') {
@@ -304,40 +301,28 @@ const drawTree = function(ctx, tree, center, fn) {
   }
 }
 
+const scale = 1.0
+const nodeWidth = 15 * scale
+const horizontalSpace = 50 * scale
+const verticalSpace = 50 * scale
 const nodeCount = 30
-const delay = 50
-const randomNumber = function() { return Math.floor(Math.random() * 100) }
 
 const canvas = document.getElementById('canvas')
-const ctx = canvas.getContext('2d')
+const valueList = document.getElementById('value-list')
 const insertInput = document.getElementById('insert-input')
 const insertSubmit = document.getElementById('insert-submit')
 const insertRandom = document.getElementById('insert-random')
 const nukeSubmit = document.getElementById('nuke-submit')
 
-var tree = new RedBlackTree(randomNumber())
+const ctx = canvas.getContext('2d')
 
-const insert = function(event) {
-  const value = parseInt(insertInput.value)
-  if (value) {
-    tree = tree.insert(value)
-    reload()
-  }
+var inserted
+var tree
+
+const init = function() {
+  inserted = [randomNumber()]
+  tree = new RedBlackTree(inserted[0])
 }
-
-const insertRnd = function(event) {
-  tree = tree.insert(randomNumber())
-  reload()
-}
-
-const nuke = function(event) {
-  tree = new RedBlackTree(randomNumber())
-  reload()
-}
-
-insertSubmit.onclick = insert
-insertRandom.onclick = insertRnd
-nukeSubmit.onclick = nuke
 
 const draw = function() {
   const origin = [ctx.canvas.width/2, 20]
@@ -346,11 +331,39 @@ const draw = function() {
   drawTree(ctx, tree, origin, drawLabel)
 }
 
-const reload = function() {
+const redraw = function() {
   canvas.width = innerHeight * scale
   canvas.height = innerHeight * scale
+  valueList.innerHTML = "[" + inserted.join(', ') + "]"
   draw()
 }
 
-window.onresize = reload
-window.onload = reload
+const insert = function(event) {
+  const value = parseInt(insertInput.value)
+  if (value) {
+    inserted.push(value)
+    tree = tree.insert(value)
+    redraw()
+  }
+}
+
+const insertRnd = function(event) {
+  const newInt = randomNumber()
+  inserted.push(newInt)
+  tree = tree.insert(newInt)
+  redraw()
+}
+
+const nuke = function(event) {
+  init()
+  redraw()
+}
+
+init()
+
+insertSubmit.onclick = insert
+insertRandom.onclick = insertRnd
+nukeSubmit.onclick = nuke
+window.onresize = redraw
+window.onload = redraw
+
