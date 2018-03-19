@@ -248,7 +248,10 @@ var RedBlackTree = function (_BinaryTree) {
   }, {
     key: 'insert',
     value: function insert(value) {
-      var inserted;
+      if (!self.data) {
+        self.data = value;
+        return;
+      }
       switch (compare(value, this.data)) {
         case -1:
           if (this.left !== undefined) {
@@ -257,6 +260,7 @@ var RedBlackTree = function (_BinaryTree) {
             this.left = new RedBlackTree(value, red, this);
             return this.left.repair();
           }
+        /* jshint -W086 */
         case 0:
           return this.root;
         case 1:
@@ -363,15 +367,15 @@ var delay = 50;
 var randomNumber = function randomNumber() {
   return Math.floor(Math.random() * 100);
 };
-var tree = new BinaryTree();
 
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-
 var insertInput = document.getElementById('insert-input');
 var insertSubmit = document.getElementById('insert-submit');
 var insertRandom = document.getElementById('insert-random');
 var nukeSubmit = document.getElementById('nuke-submit');
+
+var tree = new RedBlackTree(5);
 
 var insert = function insert(event) {
   var value = parseInt(insertInput.value);
@@ -382,7 +386,7 @@ var insert = function insert(event) {
 };
 
 var insertRnd = function insertRnd(event) {
-  tree.insert(randomNumber());
+  tree = tree.insert(randomNumber());
   reload();
 };
 
@@ -401,8 +405,6 @@ var draw = function draw() {
   drawTree(ctx, tree, origin, drawNode);
   drawTree(ctx, tree, origin, drawLabel);
 };
-
-var drawnNodes = 0;
 
 var reload = function reload() {
   canvas.width = innerHeight * scale;
