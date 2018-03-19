@@ -329,8 +329,10 @@ var RedBlackTree = function (_BinaryTree) {
 }(BinaryTree);
 
 var drawLine = function drawLine(ctx, center, tree) {
+  ctx.save();
   ctx.lineTo(center[0] - nodeWidth / 2, center[1]);
   ctx.stroke();
+  ctx.restore();
 };
 
 var drawNode = function drawNode(ctx, center, tree) {
@@ -359,19 +361,23 @@ var drawLabel = function drawLabel(ctx, center, tree) {
 
 var drawTree = function drawTree(ctx, tree, center, fn) {
   if (tree.data === undefined) return;
+  ctx.save();
   fn(ctx, center, tree);
   ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
   var baseWidth = tree.width;
   var origin = center[0] - baseWidth / 2;
   if (tree.children !== undefined) {
     tree.children.forEach(function (child) {
+      ctx.save();
       var childWidth = child.width;
       var childCenter = [origin + childWidth / 2, center[1] + verticalSpace];
       ctx.moveTo(center[0] - nodeWidth / 2, center[1]);
       drawTree(ctx, child, childCenter, fn);
       origin = childCenter[0] + childWidth / 2 + horizontalSpace;
+      ctx.restore();
     });
   }
+  ctx.restore();
 };
 
 var scale = 1.0;
@@ -416,17 +422,26 @@ var draw = function draw() {
   drawTree(ctx, tree, origin, drawLabel);
 };
 
+var resize = function resize() {
+  var height = innerHeight * 0.75;
+  var ratio = canvas.width / canvas.height;
+  var width = height * ratio;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+};
+
 var redraw = function redraw() {
-  canvas.width = innerHeight * scale;
+  canvas.width = innerWidth * scale;
   canvas.height = innerHeight * scale;
   valueList.innerHTML = "[" + inserted.join(', ') + "]";
   draw();
 };
 
 var insert = function insert(event) {
-  var value = parseInt(insertInput.value);
-  if (value !== undefined) {
-    inserted.push(value);
+  var value = insertInput.value;
+  var intValue = parseInt(value);
+  if (value !== undefined && !isNaN(intValue)) {
+    inserted.push(intValue);
     tree = tree.insert(value);
     redraw();
   }
@@ -449,6 +464,6 @@ treeSelect.onchange = setType;
 insertSubmit.onclick = insert;
 insertRandom.onclick = insertRnd;
 nukeSubmit.onclick = nuke;
-window.onresize = redraw;
-window.onload = redraw;
+window.onresize = resize;
+window.onload = resize;
 //# sourceMappingURL=index.js.map
