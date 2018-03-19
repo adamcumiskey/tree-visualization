@@ -104,17 +104,19 @@ var BinaryTree = function (_Tree) {
         case -1:
           if (this.left === undefined) {
             this.left = new BinaryTree(value);
+            return this.root;
           } else {
             return this.left.insert(value);
           }
           break;
         case 0:
-          break;
+          return this.root;
         case 1:
           if (this.right === undefined) {
             this.right = new BinaryTree(value);
+            return this.root;
           } else {
-            this.right.insert(value);
+            return this.right.insert(value);
           }
           break;
       }
@@ -226,20 +228,25 @@ var RedBlackTree = function (_BinaryTree) {
         this.grandparent.setColor(red);
         return this.grandparent.repair();
       } else {
-        var p = this.parent;
-        var g = this.grandparent;
+        var n = this;
+        var p = n.parent;
+        var g = n.grandparent;
         if (g) {
-          if (g.left && this === g.left.right) {
+          if (g.left && n === g.left.right) {
             p.rotateLeft();
-          } else if (g.right && this === g.right.left) {
+            n = n.left;
+          } else if (g.right && n === g.right.left) {
             p.rotateRight();
+            n = n.right;
           }
-          if (p === this.left) {
+          p = n.parent;
+          g = n.grandparent;
+          if (n == p.left) {
             g.rotateRight();
           } else {
             g.rotateLeft();
           }
-          this.setColor(black);
+          p.setColor(black);
           g.setColor(red);
         }
         return this.root;
@@ -250,7 +257,7 @@ var RedBlackTree = function (_BinaryTree) {
     value: function insert(value) {
       if (!self.data) {
         self.data = value;
-        return;
+        return this.root;
       }
       switch (compare(value, this.data)) {
         case -1:
@@ -375,12 +382,12 @@ var insertSubmit = document.getElementById('insert-submit');
 var insertRandom = document.getElementById('insert-random');
 var nukeSubmit = document.getElementById('nuke-submit');
 
-var tree = new RedBlackTree(5);
+var tree = new RedBlackTree(randomNumber());
 
 var insert = function insert(event) {
   var value = parseInt(insertInput.value);
   if (value) {
-    tree.insert(value);
+    tree = tree.insert(value);
     reload();
   }
 };
@@ -391,7 +398,7 @@ var insertRnd = function insertRnd(event) {
 };
 
 var nuke = function nuke(event) {
-  tree = new BinaryTree();
+  tree = new RedBlackTree(randomNumber());
   reload();
 };
 
