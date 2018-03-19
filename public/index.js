@@ -10,10 +10,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var scale = 1.0;
-var nodeWidth = 15 * scale;
-var horizontalSpace = 50 * scale;
-var verticalSpace = 50 * scale;
+var randomNumber = function randomNumber() {
+  return Math.floor(Math.random() * 100);
+};
 
 var compare = function compare(a, b) {
   if (typeof a === 'number' && typeof b === 'number') {
@@ -369,42 +368,28 @@ var drawTree = function drawTree(ctx, tree, center, fn) {
   }
 };
 
+var scale = 1.0;
+var nodeWidth = 15 * scale;
+var horizontalSpace = 50 * scale;
+var verticalSpace = 50 * scale;
 var nodeCount = 30;
-var delay = 50;
-var randomNumber = function randomNumber() {
-  return Math.floor(Math.random() * 100);
-};
 
 var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+var valueList = document.getElementById('value-list');
 var insertInput = document.getElementById('insert-input');
 var insertSubmit = document.getElementById('insert-submit');
 var insertRandom = document.getElementById('insert-random');
 var nukeSubmit = document.getElementById('nuke-submit');
 
-var tree = new RedBlackTree(randomNumber());
+var ctx = canvas.getContext('2d');
 
-var insert = function insert(event) {
-  var value = parseInt(insertInput.value);
-  if (value) {
-    tree = tree.insert(value);
-    reload();
-  }
+var inserted;
+var tree;
+
+var init = function init() {
+  inserted = [randomNumber()];
+  tree = new RedBlackTree(inserted[0]);
 };
-
-var insertRnd = function insertRnd(event) {
-  tree = tree.insert(randomNumber());
-  reload();
-};
-
-var nuke = function nuke(event) {
-  tree = new RedBlackTree(randomNumber());
-  reload();
-};
-
-insertSubmit.onclick = insert;
-insertRandom.onclick = insertRnd;
-nukeSubmit.onclick = nuke;
 
 var draw = function draw() {
   var origin = [ctx.canvas.width / 2, 20];
@@ -413,12 +398,39 @@ var draw = function draw() {
   drawTree(ctx, tree, origin, drawLabel);
 };
 
-var reload = function reload() {
+var redraw = function redraw() {
   canvas.width = innerHeight * scale;
   canvas.height = innerHeight * scale;
+  valueList.innerHTML = "[" + inserted.join(', ') + "]";
   draw();
 };
 
-window.onresize = reload;
-window.onload = reload;
+var insert = function insert(event) {
+  var value = parseInt(insertInput.value);
+  if (value) {
+    inserted.push(value);
+    tree = tree.insert(value);
+    redraw();
+  }
+};
+
+var insertRnd = function insertRnd(event) {
+  var newInt = randomNumber();
+  inserted.push(newInt);
+  tree = tree.insert(newInt);
+  redraw();
+};
+
+var nuke = function nuke(event) {
+  init();
+  redraw();
+};
+
+init();
+
+insertSubmit.onclick = insert;
+insertRandom.onclick = insertRnd;
+nukeSubmit.onclick = nuke;
+window.onresize = redraw;
+window.onload = redraw;
 //# sourceMappingURL=index.js.map
