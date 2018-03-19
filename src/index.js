@@ -28,20 +28,29 @@ class Tree {
 }
 
 class BinaryTree extends Tree {
-  constructor(data, left, right) {
+  constructor(data, parent, left, right) {
     super()
+    this.data = data
     this.left = left
     this.right = right
-    this.setData(data)
+    this.parent = parent
   }
 
-  setData(data) {
-    this.data = data
-    if (typeof data === 'number') {
-      this.meta = {}
-      var h = (data/100)*300
-      this.meta.color = `hsl(${h}, 100%, 50%)`
-      this.meta.textColor = 'white'
+  get meta() {
+    if (this.data !== undefined) {
+      var h = (this.data/100)*300
+      return {
+        color: `hsl(${h}, 100%, 50%)`,
+        textColor: 'white'
+      }
+    }
+  }
+
+  get root() {
+    if (this.parent === undefined) {
+      return this
+    } else {
+      return this.parent.root
     }
   }
 
@@ -61,29 +70,28 @@ class BinaryTree extends Tree {
   }
 
   insert(value) {
-    if (!this.data) {
-      this.setData(value)
-      return
+    if (this.data === undefined) {
+      this.data = value
+      return this
     }
     switch (compare(value, this.data)) {
       case -1:
         if (this.left === undefined) {
-          this.left = new BinaryTree(value)
+          this.left = new BinaryTree(value, this)
           return this.root
         } else {
           return this.left.insert(value)
         }
-        break
+        /* jshint -W086 */
       case 0:
         return this.root
       case 1:
         if (this.right === undefined) {
-          this.right = new BinaryTree(value)
+          this.right = new BinaryTree(value, this)
           return this.root
         } else {
           return this.right.insert(value)
         }
-        break
     }
   }
 
@@ -97,8 +105,10 @@ class RedBlackTree extends BinaryTree {
     super(data, left, right)
     this.color = color || black
     this.parent = parent
+  }
 
-    this.meta = {
+  get meta() {
+    return {
       color: this.color,
       textColor: 'white'
     }
@@ -164,11 +174,6 @@ class RedBlackTree extends BinaryTree {
     }
   }
 
-  setColor(color) {
-    this.color = color
-    this.meta.color = color
-  }
-
   rotateLeft() {
     var newNode = this.right
     if (newNode === undefined) {
@@ -191,15 +196,15 @@ class RedBlackTree extends BinaryTree {
 
   repair() {
     if (this.parent === undefined) {
-      this.setColor(black)
+      this.color = black
       return this.root
     } else if (this.parent.color === black) {
       // all good
       return this.root
     } else if (this.uncle && this.uncle.color === red) {
-      this.parent.setColor(black)
-      this.uncle.setColor(black)
-      this.grandparent.setColor(red)
+      this.parent.color = black
+      this.uncle.color = black
+      this.grandparent.color = red
       return this.grandparent.repair()
     } else {
       var n = this
@@ -220,16 +225,16 @@ class RedBlackTree extends BinaryTree {
         } else {
           g.rotateLeft()
         }
-        p.setColor(black)
-        g.setColor(red)
+        p.color = black
+        g.color = red
       }
       return this.root
     }
   }
 
   insert(value) {
-    if (!self.data) {
-      self.data = value
+    if (this.data === undefined) {
+      this.data = value
       return this.root
     }
     switch (compare(value, this.data)) {
@@ -285,7 +290,7 @@ const drawLabel = function(ctx, center, tree) {
 }
 
 const drawTree = function(ctx, tree, center, fn) {
-  if (!tree.data) return
+  if (tree.data === undefined) return
   fn(ctx, center, tree)
   ctx.moveTo(center[0]-nodeWidth/2, center[1])
   const baseWidth = tree.width
@@ -307,6 +312,7 @@ const horizontalSpace = 50 * scale
 const verticalSpace = 50 * scale
 const nodeCount = 30
 
+const treeSelect = document.getElementById('tree-select')
 const canvas = document.getElementById('canvas')
 const valueList = document.getElementById('value-list')
 const insertInput = document.getElementById('insert-input')
@@ -316,12 +322,23 @@ const nukeSubmit = document.getElementById('nuke-submit')
 
 const ctx = canvas.getContext('2d')
 
+const treeTypes = {
+  'bst': BinaryTree,
+  'rbt': RedBlackTree
+}
+
 var inserted
 var tree
 
-const init = function() {
-  inserted = [randomNumber()]
-  tree = new RedBlackTree(inserted[0])
+const setType = function(event) {
+  const type = treeSelect.value
+  init(treeTypes[type])
+}
+
+const init = function(TreeClass) {
+  inserted = []
+  tree = new TreeClass()
+  redraw()
 }
 
 const draw = function() {
@@ -340,7 +357,7 @@ const redraw = function() {
 
 const insert = function(event) {
   const value = parseInt(insertInput.value)
-  if (value) {
+  if (value !== undefined) {
     inserted.push(value)
     tree = tree.insert(value)
     redraw()
@@ -355,12 +372,12 @@ const insertRnd = function(event) {
 }
 
 const nuke = function(event) {
-  init()
-  redraw()
+  init(treeTypes[treeSelect.value])
 }
 
-init()
+init(BinaryTree)
 
+treeSelect.onchange = setType
 insertSubmit.onclick = insert
 insertRandom.onclick = insertRnd
 nukeSubmit.onclick = nuke
